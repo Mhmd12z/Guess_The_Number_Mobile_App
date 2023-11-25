@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'score.dart';
@@ -441,15 +439,15 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Text(
                         btnMode,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 30.0,
                             fontWeight: FontWeight.w900,
                             fontFamily: 'PressStart2P',
                             color: Colors.blue),
-                      ),SizedBox(
+                      ),const SizedBox(
                         width: 10.0,
                       ),
-                      Icon(Icons.videogame_asset, color: Colors.deepPurple, size: 50,),
+                      const Icon(Icons.videogame_asset, color: Colors.deepPurple, size: 50,),
                     ],
                   ),
                 ),

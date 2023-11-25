@@ -14,7 +14,7 @@ class _ScorePageState extends State<ScorePage> {
     return Scaffold(
       backgroundColor: Colors.deepPurple,
       appBar: AppBar(
-        title: Text("Score Dashboard",style: TextStyle(fontFamily: "PressStart2P",fontSize: 12),),
+        title: const Text("Score Dashboard",style: TextStyle(fontFamily: "PressStart2P",fontSize: 12),),
         centerTitle: true,
         elevation: 0,
       ),
@@ -22,32 +22,32 @@ class _ScorePageState extends State<ScorePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Icon(
+            const Icon(
               Icons.star,
               color: Colors.yellow,
               size: 100,
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               score.toString(),
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.yellow,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Text(
               'Total Played ${score.getTotal()}',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.yellow,
                 fontSize: 18,
               ),
             ),
-            SizedBox(height: 16.0,),
-            Text(score.getMatches(),style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),)
+            const SizedBox(height: 16.0,),
+            Text(score.getMatches(),style: const TextStyle(color: Colors.white,fontWeight: FontWeight.bold),)
           ],
         ),
       ),

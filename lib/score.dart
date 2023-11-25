@@ -19,13 +19,13 @@ class Score{
   String toString(){
     if((_wins + _loses) == 0){
       return """
-You Not Played Yet
+No Games Played
       """;
     }
     return """
-You Wins : $_wins Times
+You Won : $_wins Times
 
-You Loses: $_loses Times
+You Lost : $_loses Times
     """;
   }
   String getMatches(){
@@ -33,9 +33,9 @@ You Loses: $_loses Times
       return "";
     }
     if(_win){
-      return "You wins last match";
+      return "You won the last match!";
     }
-    return "You losed last match";
+    return "You lost the last match!";
   }
   int getTotal(){
     return _total;

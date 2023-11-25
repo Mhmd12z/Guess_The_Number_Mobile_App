@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'score.dart';
 import "scorepage.dart";
 
-void main() => runApp(HomePage());
+void main() => runApp(const HomePage());
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,21 +15,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int rand = 1 + Random().nextInt(100);
+  int rand = 1 + Random().nextInt(100); //The random number
   String msg = "Play!";
-  int n = 0;
-  int tries = 10;
-  int least = 1;
-  int most = 100;
-  int count = 10;
-  int wins = 0;
-  int loses = 0;
+  String btnMode = "Guess";
+  int n = 0, tries = 10,least = 1,most = 100,count = 10,wins = 0,loses = 0;
   var exact = "?";
   bool winsLastMatch = false;
   void setNumber(v) {
-    setState(() {
-      n = int.parse(v);
-    });
+      setState(() {
+        n = int.parse(v);
+      });
   }
   final Map<String, Color> messageColors = {
     'High': Colors.red[400]!,
@@ -35,32 +32,37 @@ class _HomePageState extends State<HomePage> {
     'Low': Colors.cyanAccent,
     'Too Low': Colors.blue,
     'Winner!': Colors.yellowAccent,
-    'You Loosed!': Colors.deepOrange,
+    'You Lost!': Colors.deepOrange,
   };
+  void mode(){
+    tries=10;
+    least=1;
+    if(difficulty=="Easy"){
+      most=100;
+      rand=Random().nextInt(100);
+    }else if(difficulty=="Medium"){
+      most=500;
+      rand=Random().nextInt(500);
+    }else{
+      most=1000;
+      rand=Random().nextInt(1000);
+    }
+  }
   void restart() {
     setState(() {
-      tries = 10;
-      least = 1;
-      most = 100;
+      mode();
       n = 0;
-      rand = Random().nextInt(100);
       msg = "Play!";
       exact = "?";
-      difficulty = "EZ";
       clearText();
+      btnMode="Guess";
     });
   }
-
+  bool alreadyWin = false;
+  bool alreadylost= false;
   void matchNumber() {
     setState(() {
       if (tries > 0) {
-        if (rand == n) {
-          msg = "Winner!";
-          tries++;
-          exact = rand.toString();
-          wins++;
-          winsLastMatch=true;
-        }
         if (n > rand) {
           most = n;
         } else if (n < rand) {
@@ -81,21 +83,43 @@ class _HomePageState extends State<HomePage> {
         }
           tries--;
       }
+      if (rand == n) {
+        if(!alreadyWin) {
+          alreadyWin=true;
+          msg = "Winner!";
+          tries++;
+          exact = rand.toString();
+          wins++;
+          winsLastMatch = true;
+          btnMode="Restart";
+        }else{
+          restart();
+          alreadyWin=false;
+        }
+      }
       if(tries==0){
-        tries = 0;
-        msg = "You Loosed!";
-        exact = rand.toString();
-        loses++;
-        winsLastMatch=false;
+        if(!alreadylost) {
+          alreadylost=true;
+          tries = 0;
+          msg = "You Lost!";
+          exact = rand.toString();
+          loses++;
+          winsLastMatch = false;
+          btnMode="Restart";
+        }else{
+          restart();
+          alreadylost=false;
+        }
       }
     });
   }
 
-  List<String> diffLevels = ["EZ", "Medium", "GG"];
-  String? difficulty = "EZ";
+  List<String> diffLevels = ["Easy", "Medium", "Hard"];
+  String? difficulty = "Easy";
   void chooseDiff() {
+    restart();
     setState(() {
-      if (difficulty == "EZ") {
+      if (difficulty == "Easy") {
         most = 100;
         rand = 1 + Random().nextInt(100);
       } else if (difficulty == "Medium") {
@@ -116,15 +140,14 @@ class _HomePageState extends State<HomePage> {
     _controllerLoses.dispose();
     super.dispose();
   }
-
-  void showScore() {
-    try {
-      int wins = int.parse(_controllerWins.text);
-      int loses = int.parse(_controllerLoses.text);
-    } catch (e) {
-      print(e);
-    }
-  }
+  // void showScore() {
+  //   try {
+  //     int wins = int.parse(_controllerWins.text);
+  //     int loses = int.parse(_controllerLoses.text);
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  // }
   void goToScore(){
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context)=> const ScorePage(),
@@ -132,7 +155,7 @@ class _HomePageState extends State<HomePage> {
       )
     );
   }
-  TextEditingController _textController = TextEditingController();
+  final TextEditingController _textController = TextEditingController();
 
   void clearText() {
     _textController.clear();
@@ -146,18 +169,18 @@ class _HomePageState extends State<HomePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            const Text(
               "Guess The Number",
               style: TextStyle(fontSize: 12.0,fontWeight: FontWeight.w900,fontFamily: 'PressStart2P'),
             ),
             ElevatedButton(
               onPressed: restart,
-              child: Icon(
-                Icons.restart_alt,
-                color: Colors.yellow,
-              ),
               style: ButtonStyle(
                 elevation: MaterialStateProperty.all(0),
+              ),
+              child: const Icon(
+                Icons.restart_alt,
+                color: Colors.yellow,
               ),
             )
           ],
@@ -168,7 +191,7 @@ class _HomePageState extends State<HomePage> {
       drawer: Drawer(
         backgroundColor: Colors.blue,
         elevation: 0,
-        shape: UnderlineInputBorder(
+        shape: const UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.yellow, width: 20.0)),
         child: Padding(
           padding: const EdgeInsets.all(10.0),
@@ -177,7 +200,7 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Row(
                   children: [
-                    Container(
+                    SizedBox(
                       width: 60,
                       height: 60,
                       child: ClipRRect(
@@ -188,7 +211,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    Expanded(
+                    const Expanded(
                         child: ListTile(
                       title: Text(
                         "Guest",
@@ -201,15 +224,15 @@ class _HomePageState extends State<HomePage> {
                     )),
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 16.0,
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 16.0,
                 ),
-            Text("Change The Difficulty?",textAlign:TextAlign.center,style: TextStyle(fontSize: 12,color: Colors.white),)
+            const Text("Change The Difficulty?",textAlign:TextAlign.center,style: TextStyle(fontSize: 12,color: Colors.white),)
             ,
-                SizedBox(height: 16.0,),
+                const SizedBox(height: 16.0,),
                 Container(
                   alignment: Alignment.center,
                   child: DropdownButton<String>(
@@ -224,7 +247,7 @@ class _HomePageState extends State<HomePage> {
                               value: item,
                               child: Text(
                                 item,
-                                style: TextStyle(fontSize: 25),
+                                style: const TextStyle(fontSize: 25),
                               ),
                             ))
                         .toList(),
@@ -232,63 +255,63 @@ class _HomePageState extends State<HomePage> {
                       difficulty = item;
                       chooseDiff();
                     }),
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.yellow,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 16.0,
                 ),
                 // ElevatedButton(onPressed: (){);}, child: ListTile(title: Text("Show Score",style: TextStyle(color: Colors.white),),leading: Icon(Icons.sports_score_outlined) ,))
-                ListTile(
+                const ListTile(
                   title: Text("Score: ",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w900),),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 16.0,
                 ),
-                Text(
+                const Text(
                   "Number of Wins",
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white, fontSize: 12.0),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 16.0,
                 ),
                 Text(
                   "$wins",
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.yellow, fontSize: 20.0),
+                  style: const TextStyle(color: Colors.yellow, fontSize: 20.0),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 16.0,
                   child: Divider(),
                 ),
-                Text(
+                const Text(
                   "Number of Loses",
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white, fontSize: 12.0),
                 ),
-                SizedBox(height: 16.0,),
+                const SizedBox(height: 16.0,),
                 Text(
                   "$loses",
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.red, fontSize: 20.0),
+                  style: const TextStyle(color: Colors.red, fontSize: 20.0),
                 ),
-                SizedBox(height: 16.0,),
-                ElevatedButton(onPressed: goToScore, child: Text("Show Details",style: TextStyle(
+                const SizedBox(height: 16.0,),
+                ElevatedButton(onPressed: goToScore, child: const Text("Show Details",style: TextStyle(
                   fontSize: 10.0,
                   fontFamily: 'PressStart2P',
                 ),)),
-                SizedBox(height: 30.0,),
-                Text("How To Play?",textAlign: TextAlign.center,style: TextStyle(
+                const SizedBox(height: 30.0,),
+                const Text("How To Play?",textAlign: TextAlign.center,style: TextStyle(
                   color: Colors.white,
                   fontSize: 10.0
                 ),),
-                SizedBox(height: 10.0,),
+                const SizedBox(height: 10.0,),
                 IconButton(
-                  icon: Icon(Icons.info),
+                  icon: const Icon(Icons.info),
                   color: Colors.white,
                   onPressed: () {
                     // Show a hint when the button is pressed
@@ -296,16 +319,16 @@ class _HomePageState extends State<HomePage> {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: Text('Hint'),
-                          content: Column(
+                          title: const Text('Hint'),
+                          content: const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text("EZ:Try guessing a number between 1 & 100"),
+                              Text("Easy:Try guessing a number between 1 & 100"),
                               SizedBox(height: 16.0,),
                               Text("Medium:Try guessing a number between 1 & 500"),
                               SizedBox(height: 16.0,),
-                              Text("GG:Try guessing a number between 1 & 1000"),
+                              Text("Hard:Try guessing a number between 1 & 1000"),
                             ],
                           ),
                           actions: [
@@ -313,7 +336,7 @@ class _HomePageState extends State<HomePage> {
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
-                              child: Text('OK'),
+                              child: const Text('OK'),
                             ),
                           ],
                         );
@@ -334,12 +357,12 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                  padding: EdgeInsets.all(10.0),
+                  padding: const EdgeInsets.all(10.0),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10.0),
                       color: Colors.blue),
                   child: Text("You Have $tries Attempts",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'PressStart2P',
                           fontSize: 15.0,
                           color: Colors.yellow,
@@ -349,21 +372,21 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     "$least",
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 20.0,
                         color: Colors.yellow,
                         fontWeight: FontWeight.w800),
                   ),
                   Text(
                     " < $exact < ",
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 24.0,
                         color: Colors.orange,
                         fontWeight: FontWeight.w800),
                   ),
                   Text(
                     "$most",
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 20.0,
                         color: Colors.yellow,
                         fontWeight: FontWeight.w800),
@@ -371,7 +394,7 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               Text(
-                "$msg",
+                msg,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: messageColors.containsKey(msg) ? messageColors[msg] : Colors.orange,
@@ -379,17 +402,18 @@ class _HomePageState extends State<HomePage> {
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              SizedBox(height: 16.0,),
+              const SizedBox(height: 16.0,),
               SizedBox(
                 width: 400.0,
                 height: 50.0,
                 child: TextField(
                   controller: _textController,
                   keyboardType: TextInputType.number,
-                  autofocus: true,
-                  showCursor: false,
+                  autofocus: false,
+                  mouseCursor: MaterialStateMouseCursor.textable,
+                  cursorColor: Colors.yellow,
                   textAlign: TextAlign.center,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       hintText: "Enter the number",
                       hintStyle: TextStyle(color: Colors.white,fontSize: 12.0),
@@ -398,12 +422,12 @@ class _HomePageState extends State<HomePage> {
                   onChanged: (v) {
                     setNumber(v);
                   },
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'PressStart2P',
                       color: Colors.white, letterSpacing: 5.0, fontSize: 20.0),
                 ),
               ),
-              SizedBox(height: 20,),
+              const SizedBox(height: 20,),
               SizedBox(
                 width: 400.0,
                 height: 100.0,
@@ -416,7 +440,7 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Guess",
+                        btnMode,
                         style: TextStyle(
                             fontSize: 30.0,
                             fontWeight: FontWeight.w900,
@@ -430,7 +454,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              SizedBox(height: 12.0,)
+              const SizedBox(height: 12.0,)
             ],
           ),
         ),

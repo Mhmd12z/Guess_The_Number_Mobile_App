@@ -287,7 +287,7 @@ class _HomePageState extends State<HomePage> {
                   child: Divider(),
                 ),
                 const Text(
-                  "Number of Loses",
+                  "Number of Losses",
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white, fontSize: 12.0),
                 ),

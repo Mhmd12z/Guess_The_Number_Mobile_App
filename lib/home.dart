@@ -13,7 +13,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int rand = 1 + Random().nextInt(100); //The random number
+  int rand = 2 + Random().nextInt(98); //The random number
   String msg = "Play!";
   String btnMode = "Guess";
   int n = 0, tries = 10,least = 1,most = 100,count = 10,wins = 0,loses = 0;
@@ -37,13 +37,13 @@ class _HomePageState extends State<HomePage> {
     least=1;
     if(difficulty=="Easy"){
       most=100;
-      rand=Random().nextInt(100);
+      rand=2 + Random().nextInt(98);
     }else if(difficulty=="Medium"){
       most=500;
-      rand=Random().nextInt(500);
+      rand=2 + Random().nextInt(498);
     }else{
       most=1000;
-      rand=Random().nextInt(1000);
+      rand=2 + Random().nextInt(998);
     }
   }
   void restart() {
@@ -54,6 +54,8 @@ class _HomePageState extends State<HomePage> {
       exact = "?";
       clearText();
       btnMode="Guess";
+      alreadyWin=false;
+      alreadylost=false;
     });
   }
   bool alreadyWin = false;
@@ -119,13 +121,13 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       if (difficulty == "Easy") {
         most = 100;
-        rand = 1 + Random().nextInt(100);
+        rand = 2 + Random().nextInt(98);
       } else if (difficulty == "Medium") {
         most = 500;
-        rand = 1 + Random().nextInt(500);
+        rand = 2 + Random().nextInt(498);
       } else {
         most = 1000;
-        rand = 1 + Random().nextInt(1000);
+        rand = 2 + Random().nextInt(998);
       }
     });
   }

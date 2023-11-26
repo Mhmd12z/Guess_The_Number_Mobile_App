@@ -14,7 +14,10 @@ class _ScorePageState extends State<ScorePage> {
     return Scaffold(
       backgroundColor: Colors.deepPurple,
       appBar: AppBar(
-        title: const Text("Score Dashboard",style: TextStyle(fontFamily: "PressStart2P",fontSize: 12),),
+        title: const Text(
+          "Score Dashboard",
+          style: TextStyle(fontFamily: "PressStart2P", fontSize: 12),
+        ),
         centerTitle: true,
         elevation: 0,
       ),
@@ -46,8 +49,14 @@ class _ScorePageState extends State<ScorePage> {
                 fontSize: 18,
               ),
             ),
-            const SizedBox(height: 16.0,),
-            Text(score.getMatches(),style: const TextStyle(color: Colors.white,fontWeight: FontWeight.bold),)
+            const SizedBox(
+              height: 16.0,
+            ),
+            Text(
+              score.getMatches(),
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            )
           ],
         ),
       ),

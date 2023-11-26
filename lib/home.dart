@@ -16,14 +16,15 @@ class _HomePageState extends State<HomePage> {
   int rand = 2 + Random().nextInt(98); //The random number
   String msg = "Play!";
   String btnMode = "Guess";
-  int n = 0, tries = 10,least = 1,most = 100,count = 10,wins = 0,loses = 0;
+  int n = 0, tries = 10, least = 1, most = 100, wins = 0, loses = 0;
   var exact = "?";
   bool winsLastMatch = false;
   void setNumber(v) {
-      setState(() {
-        n = int.parse(v);
-      });
+    setState(() {
+      n = int.parse(v);
+    });
   }
+
   final Map<String, Color> messageColors = {
     'High': Colors.red[400]!,
     'Too High': Colors.red,
@@ -32,20 +33,21 @@ class _HomePageState extends State<HomePage> {
     'Winner!': Colors.yellowAccent,
     'You Lost!': Colors.deepOrange,
   };
-  void mode(){
-    tries=10;
-    least=1;
-    if(difficulty=="Easy"){
-      most=100;
-      rand=2 + Random().nextInt(98);
-    }else if(difficulty=="Medium"){
-      most=500;
-      rand=2 + Random().nextInt(498);
-    }else{
-      most=1000;
-      rand=2 + Random().nextInt(998);
+  void mode() {
+    tries = 10;
+    least = 1;
+    if (difficulty == "Easy") {
+      most = 100;
+      rand = 2 + Random().nextInt(98);
+    } else if (difficulty == "Medium") {
+      most = 500;
+      rand = 2 + Random().nextInt(498);
+    } else {
+      most = 1000;
+      rand = 2 + Random().nextInt(998);
     }
   }
+
   void restart() {
     setState(() {
       mode();
@@ -53,13 +55,14 @@ class _HomePageState extends State<HomePage> {
       msg = "Play!";
       exact = "?";
       clearText();
-      btnMode="Guess";
-      alreadyWin=false;
-      alreadylost=false;
+      btnMode = "Guess";
+      alreadyWin = false;
+      alreadylost = false;
     });
   }
+
   bool alreadyWin = false;
-  bool alreadylost= false;
+  bool alreadylost = false;
   void matchNumber() {
     setState(() {
       if (tries > 0) {
@@ -81,34 +84,34 @@ class _HomePageState extends State<HomePage> {
             msg = "High";
           }
         }
-          tries--;
+        tries--;
       }
       if (rand == n) {
-        if(!alreadyWin) {
-          alreadyWin=true;
+        if (!alreadyWin) {
+          alreadyWin = true;
           msg = "Winner!";
           tries++;
           exact = rand.toString();
           wins++;
           winsLastMatch = true;
-          btnMode="Restart";
-        }else{
+          btnMode = "Restart";
+        } else {
           restart();
-          alreadyWin=false;
+          alreadyWin = false;
         }
       }
-      if(tries==0){
-        if(!alreadylost) {
-          alreadylost=true;
+      if (tries == 0) {
+        if (!alreadylost) {
+          alreadylost = true;
           tries = 0;
           msg = "You Lost!";
           exact = rand.toString();
           loses++;
           winsLastMatch = false;
-          btnMode="Restart";
-        }else{
+          btnMode = "Restart";
+        } else {
           restart();
-          alreadylost=false;
+          alreadylost = false;
         }
       }
     });
@@ -132,34 +135,24 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  final TextEditingController _controllerWins = TextEditingController();
-  final TextEditingController _controllerLoses = TextEditingController();
   @override
   void dispose() {
-    _controllerWins.dispose();
-    _controllerLoses.dispose();
+    _textController.dispose();
     super.dispose();
   }
-  // void showScore() {
-  //   try {
-  //     int wins = int.parse(_controllerWins.text);
-  //     int loses = int.parse(_controllerLoses.text);
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
-  void goToScore(){
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context)=> const ScorePage(),
-        settings: RouteSettings(arguments: Score(wins,loses,winsLastMatch))
-      )
-    );
+
+  void goToScore() {
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => const ScorePage(),
+        settings: RouteSettings(arguments: Score(wins, loses, winsLastMatch))));
   }
+
   final TextEditingController _textController = TextEditingController();
 
   void clearText() {
     _textController.clear();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -171,7 +164,10 @@ class _HomePageState extends State<HomePage> {
           children: [
             const Text(
               "Guess The Number",
-              style: TextStyle(fontSize: 12.0,fontWeight: FontWeight.w900,fontFamily: 'PressStart2P'),
+              style: TextStyle(
+                  fontSize: 12.0,
+                  fontWeight: FontWeight.w900,
+                  fontFamily: 'PressStart2P'),
             ),
             ElevatedButton(
               onPressed: restart,
@@ -215,11 +211,11 @@ class _HomePageState extends State<HomePage> {
                         child: ListTile(
                       title: Text(
                         "Guest",
-                        style: TextStyle(color: Colors.white,fontSize: 10),
+                        style: TextStyle(color: Colors.white, fontSize: 10),
                       ),
                       subtitle: Text(
                         "Sign Up From Here ->",
-                        style: TextStyle(color: Colors.white,fontSize: 8.0),
+                        style: TextStyle(color: Colors.white, fontSize: 8.0),
                       ),
                     )),
                   ],
@@ -230,9 +226,14 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(
                   height: 16.0,
                 ),
-            const Text("Change The Difficulty?",textAlign:TextAlign.center,style: TextStyle(fontSize: 12,color: Colors.white),)
-            ,
-                const SizedBox(height: 16.0,),
+                const Text(
+                  "Change The Difficulty?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Colors.white),
+                ),
+                const SizedBox(
+                  height: 16.0,
+                ),
                 Container(
                   alignment: Alignment.center,
                   child: DropdownButton<String>(
@@ -266,7 +267,11 @@ class _HomePageState extends State<HomePage> {
                 ),
                 // ElevatedButton(onPressed: (){);}, child: ListTile(title: Text("Show Score",style: TextStyle(color: Colors.white),),leading: Icon(Icons.sports_score_outlined) ,))
                 const ListTile(
-                  title: Text("Score: ",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w900),),
+                  title: Text(
+                    "Score: ",
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.w900),
+                  ),
                 ),
                 const SizedBox(
                   height: 16.0,
@@ -293,23 +298,37 @@ class _HomePageState extends State<HomePage> {
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white, fontSize: 12.0),
                 ),
-                const SizedBox(height: 16.0,),
+                const SizedBox(
+                  height: 16.0,
+                ),
                 Text(
                   "$loses",
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.red, fontSize: 20.0),
                 ),
-                const SizedBox(height: 16.0,),
-                ElevatedButton(onPressed: goToScore, child: const Text("Show Details",style: TextStyle(
-                  fontSize: 10.0,
-                  fontFamily: 'PressStart2P',
-                ),)),
-                const SizedBox(height: 30.0,),
-                const Text("How To Play?",textAlign: TextAlign.center,style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10.0
-                ),),
-                const SizedBox(height: 10.0,),
+                const SizedBox(
+                  height: 16.0,
+                ),
+                ElevatedButton(
+                    onPressed: goToScore,
+                    child: const Text(
+                      "Show Details",
+                      style: TextStyle(
+                        fontSize: 10.0,
+                        fontFamily: 'PressStart2P',
+                      ),
+                    )),
+                const SizedBox(
+                  height: 30.0,
+                ),
+                const Text(
+                  "How To Play?",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white, fontSize: 10.0),
+                ),
+                const SizedBox(
+                  height: 10.0,
+                ),
                 IconButton(
                   icon: const Icon(Icons.info),
                   color: Colors.white,
@@ -324,11 +343,18 @@ class _HomePageState extends State<HomePage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text("Easy:Try guessing a number between 1 & 100"),
-                              SizedBox(height: 16.0,),
-                              Text("Medium:Try guessing a number between 1 & 500"),
-                              SizedBox(height: 16.0,),
-                              Text("Hard:Try guessing a number between 1 & 1000"),
+                              Text(
+                                  "Easy:Try guessing a number between 1 & 100"),
+                              SizedBox(
+                                height: 16.0,
+                              ),
+                              Text(
+                                  "Medium:Try guessing a number between 1 & 500"),
+                              SizedBox(
+                                height: 16.0,
+                              ),
+                              Text(
+                                  "Hard:Try guessing a number between 1 & 1000"),
                             ],
                           ),
                           actions: [
@@ -349,7 +375,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -363,7 +388,7 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.blue),
                   child: Text("You Have $tries Attempts",
                       style: const TextStyle(
-                        fontFamily: 'PressStart2P',
+                          fontFamily: 'PressStart2P',
                           fontSize: 15.0,
                           color: Colors.yellow,
                           fontWeight: FontWeight.w900))),
@@ -397,12 +422,16 @@ class _HomePageState extends State<HomePage> {
                 msg,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: messageColors.containsKey(msg) ? messageColors[msg] : Colors.orange,
+                  color: messageColors.containsKey(msg)
+                      ? messageColors[msg]
+                      : Colors.orange,
                   fontSize: 30.0,
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(height: 16.0,),
+              const SizedBox(
+                height: 16.0,
+              ),
               SizedBox(
                 width: 400.0,
                 height: 50.0,
@@ -416,18 +445,22 @@ class _HomePageState extends State<HomePage> {
                   decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       hintText: "Enter the number",
-                      hintStyle: TextStyle(color: Colors.white,fontSize: 12.0),
+                      hintStyle: TextStyle(color: Colors.white, fontSize: 12.0),
                       enabledBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: Colors.yellow))),
                   onChanged: (v) {
                     setNumber(v);
                   },
                   style: const TextStyle(
-                    fontFamily: 'PressStart2P',
-                      color: Colors.white, letterSpacing: 5.0, fontSize: 20.0),
+                      fontFamily: 'PressStart2P',
+                      color: Colors.white,
+                      letterSpacing: 5.0,
+                      fontSize: 20.0),
                 ),
               ),
-              const SizedBox(height: 20,),
+              const SizedBox(
+                height: 20,
+              ),
               SizedBox(
                 width: 400.0,
                 height: 100.0,
@@ -446,15 +479,22 @@ class _HomePageState extends State<HomePage> {
                             fontWeight: FontWeight.w900,
                             fontFamily: 'PressStart2P',
                             color: Colors.blue),
-                      ),const SizedBox(
+                      ),
+                      const SizedBox(
                         width: 10.0,
                       ),
-                      const Icon(Icons.videogame_asset, color: Colors.deepPurple, size: 50,),
+                      const Icon(
+                        Icons.videogame_asset,
+                        color: Colors.deepPurple,
+                        size: 50,
+                      ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 12.0,)
+              const SizedBox(
+                height: 12.0,
+              )
             ],
           ),
         ),

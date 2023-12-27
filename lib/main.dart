@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import './home.dart';
+import "./signup.dart";
+import "./login.dart";
 
 void main() => runApp(const MyApp());
 
@@ -17,7 +19,7 @@ class MyApp extends StatelessWidget {
               bodyLarge: TextStyle(fontFamily: 'PressStart2P'),
               bodyMedium: TextStyle(fontFamily: 'PressStart2P'),
               bodySmall: TextStyle(fontFamily: 'PressStart2P'))),
-      home: const HomePage(),
+      home: const Login(),
     );
   }
 }

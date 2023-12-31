@@ -3,7 +3,6 @@ import "package:http/http.dart" as http;
 import 'dart:convert' as convert;
 import "home.dart";
 import "package:shared_preferences/shared_preferences.dart";
-import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import "./signup.dart";
 
 const String _baseURL = 'https://mhmd12z.000webhostapp.com';
@@ -26,21 +25,30 @@ class _LoginState extends State<Login> {
     _controllerPass.dispose();
     super.dispose();
   }
-
-  addStringToSF(String user) async {
+  void goToHome() async{
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('username', user);
-
+    if(prefs.getString("username")!=null){
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context)=> const HomePage())
+      );
+    }
+  }
+  @override
+  void initState(){
+    goToHome();
+    super.initState();
   }
 
   void update(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text,style: const TextStyle(color: Colors.deepPurple),),backgroundColor: Colors.white70,showCloseIcon: true,closeIconColor: Colors.black45,));
     setState(() {
       _loading = false;
     });
   }
-  void saveUserInfo(String username) async {
-    addStringToSF(username);
+  Future<void> saveUserInfo(String user,String userId) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('username', user);
+    prefs.setString('uid', userId);
   }
 
   void login(
@@ -49,7 +57,6 @@ class _LoginState extends State<Login> {
       String password
       ) async {
     try{
-      // Send a JSON object using http post
       final response = await http
           .post(
         Uri.parse('$_baseURL/getUser.php'),
@@ -63,8 +70,8 @@ class _LoginState extends State<Login> {
       )
           .timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
-        saveUserInfo(username);
-        // If successful, call the update function with the response body
+        var userId = convert.jsonDecode(response.body);
+        await saveUserInfo(username,userId);
         update(response.body);
         Navigator.of(context).push(MaterialPageRoute(builder: (context) => const HomePage()));
       } else if(response.statusCode==404){
@@ -73,15 +80,12 @@ class _LoginState extends State<Login> {
         update("The password is not correct");
       }
       else {
-        // Handle other status codes (e.g., display specific error messages)
         update("Server error: ${response.statusCode}");
       }
 
     } catch (e) {
-      // Handle various exceptions (timeout, connection issues, etc.)
       update("Connection error: $e");
     }
-
   }
 
   @override
@@ -180,8 +184,8 @@ class _LoginState extends State<Login> {
                         ElevatedButton(onPressed: () async{
                           final SharedPreferences prefs = await SharedPreferences.getInstance();
                           prefs.remove('username');
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HomePage()));
-                        }, child: Text("Play as Guest!")),
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const HomePage()));
+                        }, child: const Text("Play as Guest!")),
                         TextButton(
                             onPressed: () {
                               Navigator.of(context).push(

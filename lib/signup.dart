@@ -1,12 +1,11 @@
 import "package:flutter/material.dart";
 import "package:http/http.dart" as http;
+import "package:shared_preferences/shared_preferences.dart";
 import 'dart:convert' as convert;
 import "home.dart";
-import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import "./login.dart";
 
 const String _baseURL = 'https://mhmd12z.000webhostapp.com';
-
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
 
@@ -20,8 +19,7 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPass = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final EncryptedSharedPreferences _encryptedData =
-      EncryptedSharedPreferences(); // used to store the key later
+
   bool _loading = false;
 
   @override
@@ -30,21 +28,21 @@ class _SignUpState extends State<SignUp> {
     _controllerName.dispose();
     _controllerEmail.dispose();
     _controllerPass.dispose();
-    final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences(); // used to store the key later
     super.dispose();
   }
 
-  // this function opens the Add Category page, if we managed to save key successfully
   void update(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text,style: TextStyle(color: Colors.deepPurple),),showCloseIcon: true,backgroundColor: Colors.white70,));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text,style: const TextStyle(color: Colors.deepPurple),),backgroundColor: Colors.white70,showCloseIcon: true,closeIconColor: Colors.black45,));
     setState(() {
       _loading = false;
     });
   }
 
-  Future<void> saveUserInfo(String username, String email) async {
-    _encryptedData.setString('username', username);
-    _encryptedData.setString('email', email);
+  Future<void> saveUserInfo(String username, String email,String userId) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('username', username);
+    prefs.setString('email', email);
+    prefs.setString('uid', userId);
   }
 
   void signUp(
@@ -55,7 +53,6 @@ class _SignUpState extends State<SignUp> {
     String password,
   ) async {
     try {
-      // Send a JSON object using http post
       final response = await http
           .post(
             Uri.parse('$_baseURL/saveUser.php'),
@@ -72,33 +69,20 @@ class _SignUpState extends State<SignUp> {
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
-        await saveUserInfo(username, password);
-        // If successful, call the update function with the response body
+        String userId = convert.jsonDecode(response.body);
+        await saveUserInfo(username, password,userId);
         update(response.body);
         Navigator.of(context).push(MaterialPageRoute(builder: (context) => const HomePage()));
       } else if(response.statusCode==409){
         update("The user is already registered");
       }
       else {
-        // Handle other status codes (e.g., display specific error messages)
         update("Server error: ${response.statusCode}");
       }
     } catch (e) {
-      // Handle various exceptions (timeout, connection issues, etc.)
       update("Connection error: $e");
     }
   }
-
-  // opens the Add Category page, if the key exists. It is called when
-  // the application starts
-  // void checkSavedData() async {
-  //   _encryptedData.getString('username').then((String myKey) {
-  //     if (myKey.isNotEmpty) {
-  //       Navigator.of(context)
-  //           .push(MaterialPageRoute(builder: (context) => const HomePage()));
-  //     }
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +151,7 @@ class _SignUpState extends State<SignUp> {
                                 hintText: "Name", border: OutlineInputBorder()),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter your password';
+                                return 'Please enter your name';
                               }
                               return null;
                             },
@@ -183,7 +167,7 @@ class _SignUpState extends State<SignUp> {
                                 border: OutlineInputBorder()),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter your password';
+                                return 'Please enter your email';
                               }
                               return null;
                             },
@@ -209,7 +193,7 @@ class _SignUpState extends State<SignUp> {
                           ),
                         ),
                         SizedBox(
-                          width: 120,
+                          width: 200,
                           height: 35,
                           child: ElevatedButton(
                               onPressed: _loading ? null : (){
@@ -228,7 +212,7 @@ class _SignUpState extends State<SignUp> {
                         TextButton(
                             onPressed: (){
                                 Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context)=>Login())
+                                MaterialPageRoute(builder: (context)=>const Login())
                                 );
                             },
                             child: const Text(

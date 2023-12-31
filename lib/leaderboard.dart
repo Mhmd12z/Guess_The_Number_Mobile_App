@@ -9,13 +9,12 @@ class Leaderboard extends StatefulWidget {
 }
 
 class _LeaderboardState extends State<Leaderboard> {
-  bool _load = false; // used to show products list or progress bar
+  bool _load = false;
 
   void update(bool success) {
     setState(() {
-      _load = true; // show product list
+      _load = true;
       if (!success) {
-        // API request failed
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('failed to load data')));
       }
@@ -24,7 +23,6 @@ class _LeaderboardState extends State<Leaderboard> {
 
   @override
   void initState() {
-    // update data when the widget is added to the tree the first time.
     updatePlayers(update);
     super.initState();
   }
@@ -33,21 +31,92 @@ class _LeaderboardState extends State<Leaderboard> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("Leaderboard"),
-          leading: IconButton(onPressed: !_load ? null : () {
-            setState(() {
-              _load = false; // show progress bar
-              updatePlayers(update); // update data asynchronously
-            });
-          }, icon: const Icon(Icons.refresh)),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text("Leaderboard",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w900),),
+            IconButton(onPressed: !_load ? null : () {
+              setState(() {
+                _load = false;
+                updatePlayers(update);
+              });
+            }, icon: const Icon(Icons.refresh,color: Colors.white,)),
+          ]),
+          flexibleSpace: const Image(
+            image: AssetImage('assets/nav2.jpg'),
+            fit: BoxFit.cover,
+          ),
+          leading: IconButton(onPressed: (){
+            Navigator.of(context).pop();
+          }, icon: const Icon(Icons.arrow_back,color: Colors.white,)),
+          backgroundColor: Colors.transparent,
           centerTitle: true,
         ),
-        body: _load
-            ? const ShowPlayers()
-            : const Center(
+      body: Column(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                  image: AssetImage("assets/bgc.jpeg"),
+                  fit: BoxFit.cover,
+                  opacity: 0.5
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  TextButton(onPressed: !_load ? null : () {
+                    setState(() {
+                      _load = false;
+                      updatePlayers(update);
+                    });
+                  }, child: const Text("All",style: TextStyle(fontWeight: FontWeight.w900),)),
+                  TextButton(onPressed: !_load ? null : () {
+                    setState(() {
+                      _load = false;
+                      getEasy(update);
+                    });
+                  }, child: const Text("Easy",style: TextStyle(fontWeight: FontWeight.w900),)),
+                  TextButton(onPressed: !_load ? null : () {
+                    setState(() {
+                      _load = false;
+                      getMedium(update);
+                    });
+                  }, child: const Text("Medium",style: TextStyle(fontWeight: FontWeight.w900),)),
+                  TextButton(onPressed: !_load ? null : () {
+                    setState(() {
+                      _load = false;
+                      getHard(update);
+                    });
+                  }, child: const Text("Hard",style: TextStyle(fontWeight: FontWeight.w900),)),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                    image: AssetImage("assets/bgc.jpeg"),
+                    fit: BoxFit.cover,
+                    opacity: 0.5
+                ),
+              ),
+              child: _load
+                  ? const ShowPlayers()
+                  : const Center(
                 child: SizedBox(
                     width: 100,
                     height: 100,
-                    child: CircularProgressIndicator())));
+                    child: CircularProgressIndicator()
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

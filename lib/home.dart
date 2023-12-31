@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import "package:http/http.dart" as http;
 import 'package:mobile_project_one/leaderboard.dart';
+import 'package:mobile_project_one/signup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert' as convert;
-import "home.dart";
+import "package:http/http.dart" as http;
 import "login.dart";
-import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import 'dart:math';
-import 'score.dart';
-import "scorepage.dart";
+import 'dart:convert' as convert;
+
+const String _baseURL = 'mhmd12z.000webhostapp.com';
+const String _baseURLHttp = 'https://mhmd12z.000webhostapp.com';
 
 void main() => runApp(const HomePage());
 
@@ -20,21 +20,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String? username;
-  @override
-  void initState(){
-    getSavedData();
-    super.initState();
-  }
-  getSavedData() async{
-    final pref = await SharedPreferences.getInstance();
-    username = pref.getString("username")!;
-    setState(() {
-
-    });
-  }
-
-  int rand = 2 + Random().nextInt(98); //The random number
+  late String username="Guest";
+  late String uid;
+  late Map info;
+  bool guest = false;
+  int rand = 2 + Random().nextInt(98);
   String msg = "Play!";
   String btnMode = "Guess";
   int n = 0, tries = 10, least = 1, most = 100, wins = 0, loses = 0;
@@ -45,7 +35,52 @@ class _HomePageState extends State<HomePage> {
       n = int.parse(v);
     });
   }
+  @override
+  void initState() {
+    getUserData();
+    super.initState();
+  }
 
+  void getUserData() async {
+      final pref = await SharedPreferences.getInstance();
+      if(pref.getString("username")==null){
+        setState(() {
+          guest=true;
+        });
+      }
+      setState(() {
+      username = pref.getString("username")!;
+      uid = pref.getString("uid")!;
+      });
+      final url = Uri.https(_baseURL, 'getPlayerStats.php',{'uid':uid});
+      final response = await http.get(url)
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final jsonResponse = convert.jsonDecode(response.body);
+        setState(() {
+          wins=int.parse(jsonResponse['wins']);
+          loses=int.parse(jsonResponse['losses']);
+        });
+
+      }
+  }
+  List<String> diffLevels = ["Easy", "Medium", "Hard"];
+  String difficulty = "Easy";
+  void chooseDiff() {
+    restart();
+    setState(() {
+      if (difficulty == "Easy") {
+        most = 100;
+        rand = 2 + Random().nextInt(98);
+      } else if (difficulty == "Medium") {
+        most = 500;
+        rand = 2 + Random().nextInt(498);
+      } else {
+        most = 1000;
+        rand = 2 + Random().nextInt(998);
+      }
+    });
+  }
   final Map<String, Color> messageColors = {
     'High': Colors.red[400]!,
     'Too High': Colors.red,
@@ -81,7 +116,34 @@ class _HomePageState extends State<HomePage> {
       alreadylost = false;
     });
   }
-
+  void addWin(
+      String userId,
+      String mode
+      ) async {
+    final response = await http.post(
+      Uri.parse('$_baseURLHttp/addWin.php'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: convert.jsonEncode(<String, String>{
+        'uid': userId,
+        'mode': mode
+      }),
+    ).timeout(const Duration(seconds: 5));
+  }
+  void addLoss(
+      String userId,
+      ) async {
+    final response = await http.post(
+      Uri.parse('$_baseURLHttp/addLoss.php'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: convert.jsonEncode(<String, String>{
+        'uid': userId,
+      }),
+    ).timeout(const Duration(seconds: 5));
+  }
   bool alreadyWin = false;
   bool alreadylost = false;
   void matchNumber() {
@@ -114,6 +176,9 @@ class _HomePageState extends State<HomePage> {
           tries++;
           exact = rand.toString();
           wins++;
+          if(!guest) {
+            addWin(uid, difficulty);
+          }
           winsLastMatch = true;
           btnMode = "Restart";
         } else {
@@ -128,6 +193,9 @@ class _HomePageState extends State<HomePage> {
           msg = "You Lost!";
           exact = rand.toString();
           loses++;
+          if(!guest) {
+            addLoss(uid);
+          }
           winsLastMatch = false;
           btnMode = "Restart";
         } else {
@@ -138,23 +206,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  List<String> diffLevels = ["Easy", "Medium", "Hard"];
-  String? difficulty = "Easy";
-  void chooseDiff() {
-    restart();
-    setState(() {
-      if (difficulty == "Easy") {
-        most = 100;
-        rand = 2 + Random().nextInt(98);
-      } else if (difficulty == "Medium") {
-        most = 500;
-        rand = 2 + Random().nextInt(498);
-      } else {
-        most = 1000;
-        rand = 2 + Random().nextInt(998);
-      }
-    });
-  }
 
   @override
   void dispose() {
@@ -162,11 +213,7 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  void goToScore() {
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => const ScorePage(),
-        settings: RouteSettings(arguments: Score(wins, loses, winsLastMatch))));
-  }
+
 
   final TextEditingController _textController = TextEditingController();
 
@@ -188,35 +235,25 @@ class _HomePageState extends State<HomePage> {
               style: TextStyle(
                   fontSize: 12.0,
                   fontWeight: FontWeight.w900,
-                  fontFamily: 'PressStart2P'),
+                  color: Colors.white,),
             ),
-            Row(
-              children: [
-                ElevatedButton(onPressed: () async{
-                  final SharedPreferences prefs = await SharedPreferences.getInstance();
-                  prefs.remove('username');
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Login()));
-                }, child: Text("Logout")),
-                SizedBox(width: 20,),
-                ElevatedButton(
+                IconButton(
                   onPressed: restart,
                   style: ButtonStyle(
                     elevation: MaterialStateProperty.all(0),
                   ),
-                  child: const Icon(
+                  icon: const Icon(
                     Icons.restart_alt,
                     color: Colors.yellow,
                   ),
                 ),
-              ],
-            )
           ],
         ),
         centerTitle: true,
+        backgroundColor: Colors.deepPurple[800],
         elevation: 0,
       ),
       drawer: Drawer(
-        backgroundColor: Colors.blue,
         elevation: 0,
         shape: const UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.yellow, width: 20.0)),
@@ -225,6 +262,7 @@ class _HomePageState extends State<HomePage> {
             image: DecorationImage(
               image: AssetImage("assets/bgc.jpeg"),
               fit: BoxFit.cover,
+              opacity: 0.7
             ),
           ),
           child: Padding(
@@ -248,13 +286,24 @@ class _HomePageState extends State<HomePage> {
                       Expanded(
                           child: ListTile(
                         title: Text(
-                          username ?? "Guest",
-                          style: TextStyle(color: Colors.white, fontSize: 10),
+                          username,
+                          style: const TextStyle(color: Colors.white, fontSize: 10),
                         ),
                         subtitle: Text(
-                          username==null?"Sign Up From Here ->":"",
-                          style: TextStyle(color: Colors.white, fontSize: 8.0),
+                          username=="Guest"?"Sign Up ->":"Logout? ->",
+                          style: const TextStyle(color: Colors.white, fontSize: 8.0),
                         ),
+                            trailing: username=="Guest"? IconButton(onPressed: (){
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (context)=>const SignUp())
+                              );
+                            }, icon: const Icon(Icons.login,color: Colors.white)):IconButton(onPressed: () async {
+                              final SharedPreferences prefs = await SharedPreferences.getInstance();
+                              prefs.remove('username');
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (context)=>const Login())
+                              );
+                            }, icon: const Icon(Icons.exit_to_app,color: Colors.white,),),
                       )),
                     ],
                   ),
@@ -291,7 +340,7 @@ class _HomePageState extends State<HomePage> {
                               ))
                           .toList(),
                       onChanged: (item) => setState(() {
-                        difficulty = item;
+                        difficulty = item!;
                         chooseDiff();
                       }),
                       style: const TextStyle(
@@ -303,7 +352,6 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(
                     height: 16.0,
                   ),
-                  // ElevatedButton(onPressed: (){);}, child: ListTile(title: Text("Show Score",style: TextStyle(color: Colors.white),),leading: Icon(Icons.sports_score_outlined) ,))
                   const ListTile(
                     title: Text(
                       "Score: ",
@@ -347,18 +395,15 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(
                     height: 16.0,
                   ),
-                  ElevatedButton(
-                      onPressed: goToScore,
-                      child: const Text(
-                        "Show Details",
-                        style: TextStyle(
-                          fontSize: 10.0,
-                          fontFamily: 'PressStart2P',
-                        ),
-                      )),
                   const SizedBox(
                     height: 30.0,
                   ),
+                  ElevatedButton(onPressed: (){
+                    setState(() {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const Leaderboard()));
+                    });
+                  }, child: const Text("Leaderboard")),
+                  const SizedBox(height: 16,),
                   const Text(
                     "How To Play?",
                     textAlign: TextAlign.center,
@@ -371,7 +416,6 @@ class _HomePageState extends State<HomePage> {
                     icon: const Icon(Icons.info),
                     color: Colors.white,
                     onPressed: () {
-                      // Show a hint when the button is pressed
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -408,138 +452,147 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                   ),
-                  ElevatedButton(onPressed: (){
-                    setState(() {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Leaderboard()));
-                    });
-                  }, child: Text("Leaderboard"))
                 ],
               ),
             ),
           ),
         ),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                  padding: const EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      color: Colors.blue),
-                  child: Text("You Have $tries Attempts",
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/nav4.jpg"),
+            opacity: 0.6,
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0),
+                    image: const DecorationImage(
+                        image: AssetImage("assets/bgc.jpeg"),
+                        fit: BoxFit.cover,
+                        opacity: 0.5
+                    ),
+                  ),
+                      child: Text("You Have $tries Attempts",
+                          style: const TextStyle(
+                              fontSize: 15.0,
+                              color: Colors.yellow,
+                              fontWeight: FontWeight.w900)),
+                    ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "$least",
                       style: const TextStyle(
-                          fontFamily: 'PressStart2P',
-                          fontSize: 15.0,
+                          fontSize: 20.0,
                           color: Colors.yellow,
-                          fontWeight: FontWeight.w900))),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "$least",
-                    style: const TextStyle(
-                        fontSize: 20.0,
-                        color: Colors.yellow,
-                        fontWeight: FontWeight.w800),
-                  ),
-                  Text(
-                    " < $exact < ",
-                    style: const TextStyle(
-                        fontSize: 24.0,
-                        color: Colors.orange,
-                        fontWeight: FontWeight.w800),
-                  ),
-                  Text(
-                    "$most",
-                    style: const TextStyle(
-                        fontSize: 20.0,
-                        color: Colors.yellow,
-                        fontWeight: FontWeight.w800),
-                  )
-                ],
-              ),
-              Text(
-                msg,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: messageColors.containsKey(msg)
-                      ? messageColors[msg]
-                      : Colors.orange,
-                  fontSize: 30.0,
-                  fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w800),
+                    ),
+                    Text(
+                      " < $exact < ",
+                      style: const TextStyle(
+                          fontSize: 24.0,
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w800),
+                    ),
+                    Text(
+                      "$most",
+                      style: const TextStyle(
+                          fontSize: 20.0,
+                          color: Colors.yellow,
+                          fontWeight: FontWeight.w800),
+                    )
+                  ],
                 ),
-              ),
-              const SizedBox(
-                height: 16.0,
-              ),
-              SizedBox(
-                width: 400.0,
-                height: 50.0,
-                child: TextField(
-                  controller: _textController,
-                  keyboardType: TextInputType.number,
-                  autofocus: false,
-                  mouseCursor: MaterialStateMouseCursor.textable,
-                  cursorColor: Colors.yellow,
+                Text(
+                  msg,
                   textAlign: TextAlign.center,
-                  decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: "Enter the number",
-                      hintStyle: TextStyle(color: Colors.white, fontSize: 12.0),
-                      enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.yellow))),
-                  onChanged: (v) {
-                    setNumber(v);
-                  },
-                  style: const TextStyle(
-                      fontFamily: 'PressStart2P',
-                      color: Colors.white,
-                      letterSpacing: 5.0,
-                      fontSize: 20.0),
-                ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              SizedBox(
-                width: 400.0,
-                height: 100.0,
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all(Colors.yellow)),
-                  onPressed: matchNumber,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        btnMode,
-                        style: const TextStyle(
-                            fontSize: 30.0,
-                            fontWeight: FontWeight.w900,
-                            fontFamily: 'PressStart2P',
-                            color: Colors.blue),
-                      ),
-                      const SizedBox(
-                        width: 10.0,
-                      ),
-                      const Icon(
-                        Icons.videogame_asset,
-                        color: Colors.deepPurple,
-                        size: 50,
-                      ),
-                    ],
+                  style: TextStyle(
+                    color: messageColors.containsKey(msg)
+                        ? messageColors[msg]
+                        : Colors.orange,
+                    fontSize: 30.0,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 12.0,
-              )
-            ],
+                const SizedBox(
+                  height: 16.0,
+                ),
+                SizedBox(
+                  width: 400.0,
+                  height: 50.0,
+                  child: TextFormField(
+                    controller: _textController,
+                    keyboardType: TextInputType.number,
+                    autofocus: false,
+                    mouseCursor: MaterialStateMouseCursor.textable,
+                    cursorColor: Colors.yellow,
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: "Enter a number",
+                        hintStyle: TextStyle(color: Colors.white, fontSize: 12.0),
+                        enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.yellow))),
+                    onChanged: (v) {
+                      setNumber(v);
+                    },
+                    style: const TextStyle(
+                        fontFamily: 'PressStart2P',
+                        color: Colors.white,
+                        letterSpacing: 5.0,
+                        fontSize: 20.0),
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                SizedBox(
+                  width: 400.0,
+                  height: 100.0,
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all(Colors.yellow)),
+                    onPressed: matchNumber,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          btnMode,
+                          style: const TextStyle(
+                              fontSize: 30.0,
+                              fontWeight: FontWeight.w900,
+                              fontFamily: 'PressStart2P',
+                              color: Colors.blue),
+                        ),
+                        const SizedBox(
+                          width: 10.0,
+                        ),
+                        const Icon(
+                          Icons.videogame_asset,
+                          color: Colors.deepPurple,
+                          size: 50,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 12.0,
+                )
+              ],
+            ),
           ),
         ),
       ),
